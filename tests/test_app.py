@@ -50,4 +50,3 @@ def test_admin_screen(app):
     at.sidebar.radio[0].set_value('Administration').run()
     assert not at.exception
     assert len(at.tabs) == 4
-

@@ -16,3 +16,9 @@
 - Manual visual acceptance on the target display, final demo, owner sign-off and development freeze after CI passes.
 
 This document records actual completion status, not an assertion that every administrative course deliverable has been met. Dates and contributions must remain factual.
+
+## Verified GitHub status
+
+The implementation branch was pushed and draft PR #4 was opened. Eight backlog issues (#5–#12) now exist, with story points, sprint mapping and acceptance criteria. The local Git sign-in succeeded where the connector returned 403. Projects API access is specifically blocked by missing Projects scopes; this permission was not expanded. Confirmed member assignment, linked board, actual videos and owner acceptance remain open. The implementation push CI run passed: https://github.com/saransh1890/academic-performance-analytics/actions/runs/40812171233 .
+
+The user will manually verify browser appearance and start the application themselves; no running server is required for delivery.

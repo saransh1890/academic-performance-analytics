@@ -20,3 +20,22 @@ Code for B01–B07 and the backup/documentation portion of B08 is prepared in th
 Create a board named Academic Performance Analytics, link this repository, and add the backlog issues. Recommended fields: Status (Todo/In progress/In review/Done), Story points (Number), Sprint (Sprint 1/Sprint 2), and Assignees. Copy estimates and proposed owners above after confirming member handles. Automation should move new issues to Todo and closed issues/merged PRs to Done. A linked project and its field values must be verified on GitHub before marking this deliverable complete.
 
 Do not backdate issue creation or claim the optional 12–16 October dry run occurred. The course image permits backlog updates on 19 October; any later reconstruction should be described honestly during the final demo.
+
+## GitHub evidence
+
+Implementation PR: https://github.com/saransh1890/academic-performance-analytics/pull/4
+
+Backlog issues created using the local GitHub sign-in after the connector rejected issue writes:
+
+| Item | Issue |
+|---|---|
+| B01 | https://github.com/saransh1890/academic-performance-analytics/issues/5 |
+| B02 | https://github.com/saransh1890/academic-performance-analytics/issues/6 |
+| B03 | https://github.com/saransh1890/academic-performance-analytics/issues/7 |
+| B04 | https://github.com/saransh1890/academic-performance-analytics/issues/8 |
+| B05 | https://github.com/saransh1890/academic-performance-analytics/issues/9 |
+| B06 | https://github.com/saransh1890/academic-performance-analytics/issues/10 |
+| B07 | https://github.com/saransh1890/academic-performance-analytics/issues/11 |
+| B08 | https://github.com/saransh1890/academic-performance-analytics/issues/12 |
+
+Each issue contains story points, sprint mapping, proposed responsibility and acceptance criteria. Actual GitHub assignees remain unset pending confirmed handles and team acceptance. Creating or inspecting a Projects board is blocked by the local sign-in lacking the Projects scope (GitHub returned INSUFFICIENT_SCOPES). Repository push, issue creation and PR creation succeeded through local Git authentication.
