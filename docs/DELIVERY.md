@@ -10,7 +10,7 @@
 
 ## Evidence still requiring completion
 
-- Linked GitHub Project board with fields, confirmed member assignees and issue status. Available GitHub connector has no Projects operations; local GitHub CLI is unavailable.
+- Linked GitHub Project board with fields, confirmed member assignees and issue status. GitHub Projects access was checked and rejected for missing Projects scopes; backlog issues #5–#12 exist.
 - Team members must raise their own PRs for their actual work; repository owner must review and merge. One implementation branch cannot substitute for historical team activity.
 - Two actual two-minute sprint demonstration recordings and upload. Scripts are supplied; recordings have not been fabricated.
 - Manual visual acceptance on the target display, final demo, owner sign-off and development freeze after CI passes.

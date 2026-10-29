@@ -44,6 +44,7 @@ Identifiers above use the AAS- prefix from the original SRS.
 7. The prior prototype used a selectable demo role without authentication, had no record entry, and could compare different subjects as if they were consecutive periods. These are now addressed.
 8. The original docs reference missing Mermaid sources. Sources are added alongside the existing rendered images. No claim is made that the existing images were regenerated.
 9. Delivery is retrospective on 29 October. Sprint dates come from the provided course image; implementation commits and reviews must retain their actual dates. No historical team contribution, sprint video or review is fabricated.
+10. The follow-up UI revision restricts the intervention-only checkbox to Faculty, gives Students personal metrics and own support feedback, adds individual-student report scope and filtered exports, and preloads existing academic values for editing. Attendance can be entered as counts or percentage; the stored schema is unchanged. See `UI_AND_REQUIREMENTS_REVIEW.md` for the original-document review and additions.
 
 ## Release acceptance
 

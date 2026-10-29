@@ -178,9 +178,13 @@ def summarize(records, period=None):
     return pd.DataFrame(rows, columns=columns)
 
 
-def export_report(principal, subject_id=None, period=None):
+def export_report(principal, subject_id=None, period=None, student_id=None, risk_only=False):
     authorize(principal, ('Admin', 'Faculty'))
     frame = summarize(records_for(principal, subject_id), period)
+    if student_id is not None:
+        frame = frame[frame['Student ID'] == int(student_id)]
+    if risk_only:
+        frame = frame[frame.Status == 'Needs Intervention']
     # Prevent spreadsheet applications interpreting names as formulas.
     for column in ('Student', 'Program', 'Period', 'Trend', 'Status', 'Reasons'):
         frame[column] = frame[column].map(lambda v: "'" + v if isinstance(v, str) and v.startswith(('=', '+', '-', '@', '\t', '\r', '\n')) else v)

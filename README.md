@@ -17,10 +17,11 @@ On macOS/Linux use `.venv/bin/python` instead. Python 3.11 is the reference envi
 
 ## Using the UI
 
-- Student: sign in to see only your academic records, indicators, history and support flags.
-- Faculty: view class analytics, filter by subject/period, save attendance and marks, and download performance reports.
-- Admin: all faculty capabilities plus student, subject and account maintenance, latest 200 audit entries and local database backups.
-- Academic data: choose a student and subject, enter P1/P2/etc., attended and conducted classes, and assessment values out of 100. Saving the same student/subject/period updates its record.
+- Student: see personal performance, attendance, trend, assessment period, own support status and history. Class controls and the intervention filter are absent.
+- Faculty: view class analytics, filter by subject/period, optionally show only students who need intervention, save attendance and marks, and export a class or individual-student report.
+- Admin: view overall analytics and reports, maintain academic data, students, subjects and accounts, inspect the latest 200 audit entries and create local database backups. The intervention-only checkbox is Faculty-only.
+- Academic data: choose a student, subject and P1/P2/etc. Existing marks and attendance percentage preload for editing. Enter attendance as class counts or a percentage and assessment values out of 100. Saving the same student/subject/period updates its record.
+- Reports: choose Class summary or a named student under Report scope. CSV output follows the subject, period, report scope and active Faculty intervention filter. An empty selection exports headers with no rows.
 - Administration forms: use an existing ID to update a student or subject. Account save creates an account or resets its password and permissions. Sign out using the sidebar.
 
 ## Rules
@@ -35,7 +36,7 @@ These criteria are project assumptions, not institutional policy. All demonstrat
 .\.venv\Scripts\python -m pytest -q --junitxml=test-results.xml
 ```
 
-GitHub Actions runs the test suite on pushes and pull requests. See [delivery status](docs/DELIVERY.md), [requirements and design](docs/IMPLEMENTATION.md), [backlog](docs/BACKLOG.md), and [demo script](docs/DEMO.md). Original SRS, SAD and Test Plan DOCX submissions are preserved; implementation details and deviations are in these companion documents.
+GitHub Actions runs the test suite on pushes and pull requests. See [delivery status](docs/DELIVERY.md), [requirements and design](docs/IMPLEMENTATION.md), [UI changes and requirements review](docs/UI_AND_REQUIREMENTS_REVIEW.md), [backlog](docs/BACKLOG.md), and [demo script](docs/DEMO.md). Original SRS, SAD and Test Plan DOCX submissions are preserved; implementation details and deviations are in these companion documents.
 
 ## Data and recovery
 

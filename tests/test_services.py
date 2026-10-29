@@ -107,6 +107,19 @@ def test_report_and_csv_injection(setup_db):
     assert 'P2' not in report
 
 
+def test_individual_and_filtered_report(setup_db):
+    from io import BytesIO
+    faculty = setup_db['faculty']
+    report = pd.read_csv(BytesIO(export_report(faculty, student_id=3)))
+    assert report['Student ID'].tolist() == [3]
+    assert report.iloc[0].Status == 'Needs Intervention'
+    report = pd.read_csv(BytesIO(export_report(faculty, risk_only=True)))
+    assert set(report['Student ID']) == {3, 4}
+    assert pd.read_csv(BytesIO(export_report(faculty, student_id=1, risk_only=True))).empty
+    with pytest.raises(PermissionError):
+        export_report(setup_db['student1'], student_id=3)
+
+
 def test_lockout(setup_db):
     for _ in range(5):
         assert authenticate('faculty','bad') is None
