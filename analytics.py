@@ -1,7 +1,10 @@
+import math
+
+
 def performance_score(exam_avg, assignment_avg, attendance_pct, internal_avg):
     """Weighted score, assuming each input is on a 0-100 scale."""
     values = [exam_avg, assignment_avg, attendance_pct, internal_avg]
-    if any(v < 0 or v > 100 for v in values):
+    if any(not isinstance(v, (int, float)) or not math.isfinite(v) or v < 0 or v > 100 for v in values):
         raise ValueError("All indicators must be between 0 and 100")
     return round(0.40 * exam_avg + 0.25 * assignment_avg +
                  0.20 * attendance_pct + 0.15 * internal_avg, 2)

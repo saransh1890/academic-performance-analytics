@@ -218,3 +218,14 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Local application data and backups
+academic.db
+*.db-journal
+*.db-wal
+*.db-shm
+backups/
+.env
+.local-credentials.txt
+*.log
+test-results.xml
