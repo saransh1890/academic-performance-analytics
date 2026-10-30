@@ -28,6 +28,8 @@ def test_student_privacy_and_write_denial(setup_db):
     with pytest.raises(PermissionError):
         save_record(p, 1,1,'P1',8,10,80,80,80)
     with pytest.raises(PermissionError):
+        export_report(p)
+    with pytest.raises(PermissionError):
         administration(setup_db['faculty'])
     with pytest.raises(PermissionError):
         records_for(None)
@@ -45,6 +47,12 @@ def test_attendance_upsert_and_audit(setup_db):
     assert 'before=' in logs.iloc[0].detail
 
 
+@pytest.mark.parametrize('values', [(11,10,80,80,80), (0,0,80,80,80), (8,10,-1,80,80), (8,10,float('nan'),80,80), (float('inf'),10,80,80,80)])
+def test_invalid_writes_are_atomic(setup_db, values):
+    with pytest.raises(ValueError):
+        save_record(setup_db['faculty'],1,1,'P3',*values)
+    assert records_for(setup_db['faculty'],1,'P3').empty
+    assert administration(setup_db['admin'])[1].empty
 
 
 def test_foreign_keys_and_period_validation(setup_db):
@@ -54,6 +62,17 @@ def test_foreign_keys_and_period_validation(setup_db):
         save_record(setup_db['faculty'],1,1,'October',8,10,80,80,80)
 
 
+def test_period_aggregation_and_natural_order(setup_db):
+    p = setup_db['faculty']
+    for subject, value in [(1,40),(2,80)]:
+        save_record(p,1,subject,'P10',10,10,value,value,value)
+    summary = summarize(records_for(p))
+    row = summary[summary['Student ID'] == 1].iloc[0]
+    assert row.Period == 'P10'
+    assert row.Score == 68  # .8 * average(40,80) + .2 * 100
+    assert row.Trend == 'Declining'
+    assert summarize(records_for(p), 'P1').iloc[0].Trend == 'No Previous Data'
+    assert summarize(records_for(p), 'P9').empty
 
 
 def test_admin_management_and_revocation(setup_db):
@@ -81,8 +100,24 @@ def test_seed_idempotency_and_backup(setup_db, tmp_path):
         assert conn.execute('SELECT count(*) FROM academic_records').fetchone()[0] == 10
 
 
+def test_report_and_csv_injection(setup_db):
+    save_student(setup_db['admin'],1,'=malicious','CSE',5)
+    report = export_report(setup_db['faculty'],1,'P1').decode('utf-8-sig')
+    assert "'=malicious" in report
+    assert 'P2' not in report
 
 
+def test_individual_and_filtered_report(setup_db):
+    from io import BytesIO
+    faculty = setup_db['faculty']
+    report = pd.read_csv(BytesIO(export_report(faculty, student_id=3)))
+    assert report['Student ID'].tolist() == [3]
+    assert report.iloc[0].Status == 'Needs Intervention'
+    report = pd.read_csv(BytesIO(export_report(faculty, risk_only=True)))
+    assert set(report['Student ID']) == {3, 4}
+    assert pd.read_csv(BytesIO(export_report(faculty, student_id=1, risk_only=True))).empty
+    with pytest.raises(PermissionError):
+        export_report(setup_db['student1'], student_id=3)
 
 
 def test_lockout(setup_db):
@@ -92,3 +127,8 @@ def test_lockout(setup_db):
         assert conn.execute("SELECT failures FROM login_attempts WHERE username='faculty'").fetchone()[0] == 5
 
 
+def test_normal_load_performance(setup_db):
+    start = time.perf_counter()
+    for _ in range(20):
+        summarize(records_for(setup_db['faculty']))
+    assert time.perf_counter() - start < 3
