@@ -153,10 +153,42 @@ def records_for(principal, subject_id=None, period=None):
         return pd.read_sql_query(query, conn, params=params)
 
 
+def period_key(period):
+    parts = re.split(r'(\d+)', str(period))
+    return tuple((1, int(p)) if p.isdigit() else (0, p) for p in parts)
 
 
+def summarize(records, period=None):
+    columns = ['Student ID', 'Student', 'Program', 'Period', 'Score', 'Attendance', 'Trend', 'Status', 'Reasons']
+    rows = []
+    for sid, data in records.groupby('student_id'):
+        means = data.groupby('period')[['exam_score', 'assignment_score', 'attendance_pct', 'internal_score']].mean()
+        periods = sorted(means.index, key=period_key)
+        if period and period not in periods:
+            continue
+        latest_period = period or periods[-1]
+        index = periods.index(latest_period)
+        latest = means.loc[latest_period]
+        score = performance_score(*map(float, latest))
+        previous = performance_score(*map(float, means.loc[periods[index - 1]])) if index else None
+        trend = trend_status(previous, score)
+        status, reasons = intervention_status(score, float(latest.attendance_pct), trend)
+        rows.append([int(sid), data.iloc[0]['name'], data.iloc[0]['program'], latest_period, score,
+                     round(float(latest.attendance_pct), 2), trend, status, ', '.join(reasons)])
+    return pd.DataFrame(rows, columns=columns)
 
 
+def export_report(principal, subject_id=None, period=None, student_id=None, risk_only=False):
+    authorize(principal, ('Admin', 'Faculty'))
+    frame = summarize(records_for(principal, subject_id), period)
+    if student_id is not None:
+        frame = frame[frame['Student ID'] == int(student_id)]
+    if risk_only:
+        frame = frame[frame.Status == 'Needs Intervention']
+    # Prevent spreadsheet applications interpreting names as formulas.
+    for column in ('Student', 'Program', 'Period', 'Trend', 'Status', 'Reasons'):
+        frame[column] = frame[column].map(lambda v: "'" + v if isinstance(v, str) and v.startswith(('=', '+', '-', '@', '\t', '\r', '\n')) else v)
+    return frame.to_csv(index=False).encode('utf-8-sig')
 
 
 def administration(principal):
