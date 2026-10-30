@@ -1,0 +1,14 @@
+sequenceDiagram
+  actor Student
+  participant UI as Streamlit
+  participant Service as Application services
+  participant DB as SQLite
+  Student->>UI: Sign in
+  UI->>Service: Authenticate credentials
+  Service->>DB: Verify salted password hash
+  DB-->>Service: Linked student account
+  UI->>Service: Request dashboard
+  Service->>DB: Query only linked student records
+  DB-->>Service: Academic history
+  Service-->>UI: Period scores, trend and intervention reasons
+  UI-->>Student: Own dashboard and charts

@@ -1,0 +1,7 @@
+flowchart LR
+  Browser[Student / Faculty / Admin] --> UI[Streamlit UI]
+  UI --> Services[Authorized application services]
+  Services --> Rules[Score / trend / intervention rules]
+  Services --> DB[(SQLite)]
+  Services --> CSV[CSV reports]
+  DB --> Backup[Private SQLite backups]
