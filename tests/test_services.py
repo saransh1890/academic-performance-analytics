@@ -21,18 +21,64 @@ def test_authentication_and_password_storage(setup_db):
     assert not verify_password('incorrect', password_hash('a-long-password'))
 
 
+def test_student_privacy_and_write_denial(setup_db):
+    p = setup_db['student1']
+    assert set(records_for(p).student_id) == {1}
+    assert catalog(p)[0].student_id.tolist() == [1]
+    with pytest.raises(PermissionError):
+        save_record(p, 1,1,'P1',8,10,80,80,80)
+    with pytest.raises(PermissionError):
+        administration(setup_db['faculty'])
+    with pytest.raises(PermissionError):
+        records_for(None)
+
+
+def test_attendance_upsert_and_audit(setup_db):
+    p = setup_db['faculty']
+    save_record(p,1,1,'P3',3,4,80,80,80)
+    save_record(p,1,1,'P3',4,4,90,90,90)
+    records = records_for(p,1,'P3')
+    assert len(records) == 1
+    assert records.iloc[0].attendance_pct == 100
+    _, logs = administration(setup_db['admin'])
+    assert logs.action.tolist() == ['record.update','record.create']
+    assert 'before=' in logs.iloc[0].detail
 
 
 
 
+def test_foreign_keys_and_period_validation(setup_db):
+    with pytest.raises(sqlite3.IntegrityError):
+        save_record(setup_db['faculty'],999,1,'P3',8,10,80,80,80)
+    with pytest.raises(ValueError):
+        save_record(setup_db['faculty'],1,1,'October',8,10,80,80,80)
 
 
 
 
+def test_admin_management_and_revocation(setup_db):
+    admin = setup_db['admin']
+    save_student(admin,6,'New Student','ECE',3)
+    save_subject(admin,3,'NEW','New Subject')
+    save_user(admin,'newstudent','secure-password','Student',6)
+    new = authenticate('newstudent','secure-password')
+    assert records_for(new).empty
+    save_user(admin,'newstudent','secure-password','Student',6,False)
+    assert authenticate('newstudent','secure-password') is None
+    with pytest.raises(PermissionError):
+        records_for(new)
+    with pytest.raises(ValueError):
+        save_user(admin,'admin','secure-password','Faculty')
+    with pytest.raises(PermissionError):
+        save_student(setup_db['faculty'],7,'Invalid','CSE',1)
 
 
-
-
+def test_seed_idempotency_and_backup(setup_db, tmp_path):
+    assert seed() == {}
+    assert len(records_for(setup_db['admin'])) == 10
+    backup_database(tmp_path / 'backup.db')
+    with sqlite3.connect(tmp_path / 'backup.db') as conn:
+        assert conn.execute('SELECT count(*) FROM academic_records').fetchone()[0] == 10
 
 
 
