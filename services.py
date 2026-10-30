@@ -67,8 +67,26 @@ def text(value, label):
     return value
 
 
+def save_student(principal, student_id, name, program, semester):
+    user = authorize(principal, ('Admin',))
+    if int(student_id) <= 0 or not 1 <= int(semester) <= 12:
+        raise ValueError('Use a positive student ID and semester between 1 and 12')
+    with get_conn() as conn:
+        conn.execute('''INSERT INTO students VALUES(?,?,?,?) ON CONFLICT(student_id)
+          DO UPDATE SET name=excluded.name,program=excluded.program,semester=excluded.semester''',
+          (int(student_id), text(name, 'Name'), text(program, 'Program'), int(semester)))
+        audit(conn, user, 'student.save', str(student_id))
 
 
+def save_subject(principal, subject_id, code, name):
+    user = authorize(principal, ('Admin',))
+    if int(subject_id) <= 0:
+        raise ValueError('Use a positive subject ID')
+    with get_conn() as conn:
+        conn.execute('''INSERT INTO subjects VALUES(?,?,?) ON CONFLICT(subject_id)
+          DO UPDATE SET code=excluded.code,name=excluded.name''',
+          (int(subject_id), text(code, 'Code'), text(name, 'Subject name')))
+        audit(conn, user, 'subject.save', str(subject_id))
 
 
 def save_user(principal, username, password, role, student_id=None, active=True):
@@ -86,6 +104,53 @@ def save_user(principal, username, password, role, student_id=None, active=True)
         audit(conn, user, 'user.save', username)
 
 
+def save_record(principal, student_id, subject_id, period, attended, total, assignment, internal, exam):
+    user = authorize(principal, ('Admin', 'Faculty'))
+    period = text(period, 'Period').upper()
+    if not re.fullmatch(r'P[1-9][0-9]{0,3}', period):
+        raise ValueError('Period must be P1, P2, ... P9999')
+    if not math.isfinite(total) or not math.isfinite(attended) or total <= 0 or attended < 0 or attended > total:
+        raise ValueError('Attendance requires 0 <= attended <= total and total > 0')
+    attendance = round(attended / total * 100, 2)
+    performance_score(exam, assignment, attendance, internal)
+    with get_conn() as conn:
+        before = conn.execute('SELECT * FROM academic_records WHERE student_id=? AND subject_id=? AND period=?', (student_id, subject_id, period)).fetchone()
+        conn.execute('''INSERT INTO academic_records(student_id,subject_id,period,attendance_pct,assignment_score,internal_score,exam_score)
+          VALUES(?,?,?,?,?,?,?) ON CONFLICT(student_id,subject_id,period) DO UPDATE SET
+          attendance_pct=excluded.attendance_pct,assignment_score=excluded.assignment_score,
+          internal_score=excluded.internal_score,exam_score=excluded.exam_score''',
+          (student_id, subject_id, period, attendance, assignment, internal, exam))
+        audit(conn, user, 'record.update' if before else 'record.create',
+              f'student={student_id};subject={subject_id};period={period};before={dict(before) if before else None};after={(attendance, assignment, internal, exam)}')
+
+
+def catalog(principal):
+    user = authorize(principal)
+    with get_conn() as conn:
+        students = pd.read_sql_query('SELECT * FROM students' + (' WHERE student_id=?' if user['role'] == 'Student' else '') + ' ORDER BY student_id', conn,
+                                     params=(user['student_id'],) if user['role'] == 'Student' else ())
+        subjects = pd.read_sql_query('SELECT * FROM subjects ORDER BY subject_id', conn)
+    return students, subjects
+
+
+def records_for(principal, subject_id=None, period=None):
+    user = authorize(principal)
+    clauses, params = [], []
+    if user['role'] == 'Student':
+        clauses.append('r.student_id=?')
+        params.append(user['student_id'])
+    if subject_id is not None:
+        clauses.append('r.subject_id=?')
+        params.append(int(subject_id))
+    if period:
+        clauses.append('r.period=?')
+        params.append(period)
+    query = '''SELECT r.*,s.name,s.program,s.semester,t.code,t.name AS subject
+      FROM academic_records r JOIN students s USING(student_id) JOIN subjects t USING(subject_id)'''
+    if clauses:
+        query += ' WHERE ' + ' AND '.join(clauses)
+    with get_conn() as conn:
+        return pd.read_sql_query(query, conn, params=params)
 
 
 
@@ -94,7 +159,8 @@ def save_user(principal, username, password, role, student_id=None, active=True)
 
 
 
-
-
-
-
+def administration(principal):
+    authorize(principal, ('Admin',))
+    with get_conn() as conn:
+        return (pd.read_sql_query('SELECT username,role,student_id,active FROM users', conn),
+                pd.read_sql_query('SELECT * FROM audit_log ORDER BY id DESC LIMIT 200', conn))
