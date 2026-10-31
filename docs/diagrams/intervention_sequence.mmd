@@ -1,0 +1,14 @@
+sequenceDiagram
+  actor Faculty
+  participant UI as Streamlit
+  participant Service as Application services
+  participant Rules as Analytics engine
+  participant DB as SQLite
+  Faculty->>UI: Select subject and assessment period
+  UI->>Service: Request class summary
+  Service->>DB: Read records after authorization
+  DB-->>Service: Academic records
+  Service->>Rules: Aggregate periods, compute scores and trends
+  Rules-->>Service: Intervention status with reasons
+  Service-->>UI: Class summary
+  UI-->>Faculty: Metrics, charts and flags

@@ -1,0 +1,40 @@
+erDiagram
+  STUDENTS ||--o{ ACADEMIC_RECORDS : has
+  SUBJECTS ||--o{ ACADEMIC_RECORDS : has
+  STUDENTS o|--o{ USERS : links
+  USERS ||--o{ AUDIT_LOG : generates
+  STUDENTS {
+    int student_id PK
+    string name
+    string program
+    int semester
+  }
+  SUBJECTS {
+    int subject_id PK
+    string code
+    string name
+  }
+  ACADEMIC_RECORDS {
+    int record_id PK
+    int student_id FK
+    int subject_id FK
+    string period
+    float attendance_pct
+    float assignment_score
+    float internal_score
+    float exam_score
+  }
+  USERS {
+    string username PK
+    string password_hash
+    string role
+    int student_id FK
+    bool active
+  }
+  AUDIT_LOG {
+    int id PK
+    string actor
+    string action
+    string detail
+    string created_at
+  }
