@@ -104,3 +104,77 @@ def test_subject_with_no_records_shows_empty_state(app):
     assert not at.metric
     assert at.info
     assert not at.checkbox
+
+
+def test_failed_signin_stays_on_login(app):
+    at,_ = app
+    at.run()
+    at.text_input[0].input('student1')
+    at.text_input[1].input('incorrect')
+    at.button[0].click().run()
+    assert not at.exception
+    assert at.error
+    assert not at.metric
+
+
+def test_expired_session_returns_to_login(app):
+    import time
+    at = login(app,'student1')
+    at.session_state.last_activity = time.time() - 1801
+    at.run()
+    assert not at.exception
+    assert at.text_input[0].label == 'Username'
+
+
+def test_revoked_account_returns_to_login(app):
+    at = login(app,'student1')
+    with database.get_conn() as conn:
+        conn.execute("UPDATE users SET active=0 WHERE username='student1'")
+    at.run()
+    assert not at.exception
+    assert at.text_input[0].label == 'Username'
+
+
+def test_invalid_attendance_shows_error(app):
+    at = login(app,'faculty')
+    at.sidebar.radio[0].set_value('Academic data').run()
+    next(r for r in at.radio if r.label == 'Enter attendance using').set_value('Class counts').run()
+    next(n for n in at.number_input if n.label == 'Classes attended').set_value(5)
+    next(n for n in at.number_input if n.label == 'Classes conducted').set_value(4)
+    next(b for b in at.button if b.label == 'Save academic record').click().run()
+    assert not at.exception
+    assert any('Attendance requires' in e.value for e in at.error)
+
+
+def test_admin_management_forms_save(app):
+    from services import authenticate, records_for
+    at = login(app,'admin')
+    at.sidebar.radio[0].set_value('Administration').run()
+    next(n for n in at.number_input if n.label.startswith('Student ID')).set_value(6)
+    next(t for t in at.text_input if t.label == 'Student name').input('Synthetic Test Student')
+    next(b for b in at.button if b.label == 'Save student').click().run()
+    assert not at.exception
+    assert at.success
+    next(n for n in at.number_input if n.label.startswith('Subject ID')).set_value(3)
+    next(t for t in at.text_input if t.label == 'Subject code').input('TEST101')
+    next(t for t in at.text_input if t.label == 'Subject name').input('Test Subject')
+    next(b for b in at.button if b.label == 'Save subject').click().run()
+    assert not at.exception
+    assert at.success
+    next(t for t in at.text_input if t.label == 'Account username').input('teststudent')
+    next(t for t in at.text_input if t.label.startswith('New password')).input('synthetic-test-password')
+    next(s for s in at.selectbox if s.label.startswith('Linked student')).set_value(6)
+    next(b for b in at.button if b.label == 'Save account / reset password').click().run()
+    assert not at.exception
+    assert at.success
+    new = authenticate('teststudent','synthetic-test-password')
+    assert new is not None
+    assert records_for(new).empty
+
+
+def test_historical_filter_excludes_future_records(app):
+    at = login(app,'faculty')
+    at.selectbox(key='Dashboardperiod').set_value('P1').run()
+    assert not at.exception
+    assert set(at.dataframe[0].value.Period) == {'P1'}
+    assert set(at.dataframe[1].value.Period) == {'P1'}

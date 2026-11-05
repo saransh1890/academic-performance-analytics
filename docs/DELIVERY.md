@@ -1,4 +1,4 @@
-# Delivery status — 29 October 2026
+# Delivery status — updated 5 November 2026
 
 ## Prepared
 
@@ -22,3 +22,7 @@ This document records actual completion status, not an assertion that every admi
 The implementation branch was pushed and draft PR #4 was opened. Eight backlog issues (#5–#12) now exist, with story points, sprint mapping and acceptance criteria. The local Git sign-in succeeded where the connector returned 403. Projects API access is specifically blocked by missing Projects scopes; this permission was not expanded. Confirmed member assignment, linked board, actual videos and owner acceptance remain open. The implementation push CI run passed: https://github.com/saransh1890/academic-performance-analytics/actions/runs/40812171233 .
 
 The user will manually verify browser appearance and start the application themselves; no running server is required for delivery.
+
+## Part 3 testing documents for review
+
+The four member contributions are now merged through PRs #13–#16. The updated [test-case document and four required reports](reports/README.md) extend that integrated main version with executed JUnit, statement/branch coverage and annotated HTML evidence. The workflow preserves the required GitHub check name `test` and generates downloadable report artifacts. The new report run is within the scheduled 2–6 November testing window; its exact timestamp and source hashes are in the evidence manifest. Six manual acceptance cases remain pending. Owner review, final acceptance and document-format corrections from the final-demo checklist are still required; the original DOCX baselines have not been revised by this reporting change. Earlier sections record the historical delivery state from 29 October.
