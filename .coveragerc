@@ -1,0 +1,17 @@
+[run]
+branch = True
+source = .
+relative_files = True
+concurrency = thread
+omit =
+    .venv/*
+    tests/*
+    scripts/*
+    tmp/*
+
+[report]
+show_missing = True
+precision = 2
+
+[html]
+directory = docs/reports/evidence/coverage-html

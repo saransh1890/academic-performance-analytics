@@ -36,6 +36,15 @@ These criteria are project assumptions, not institutional policy. All demonstrat
 .\.venv\Scripts\python -m pytest -q --junitxml=test-results.xml
 ```
 
+For the Part 3 test-case document, unit/system reports and statement/branch coverage:
+
+```powershell
+.\.venv\Scripts\python -m pip install -r requirements-test.txt
+.\.venv\Scripts\python scripts/run_part3_checks.py
+```
+
+See [Part 3 reports](docs/reports/README.md). These include executed automated evidence and explicitly pending manual acceptance cases. The reporting files extend the four merged member contributions and can be regenerated with the command above.
+
 GitHub Actions runs the test suite on pushes and pull requests. See [delivery status](docs/DELIVERY.md), [requirements and design](docs/IMPLEMENTATION.md), [UI changes and requirements review](docs/UI_AND_REQUIREMENTS_REVIEW.md), [backlog](docs/BACKLOG.md), and [demo script](docs/DEMO.md). Original SRS, SAD and Test Plan DOCX submissions are preserved; implementation details and deviations are in these companion documents.
 
 ## Data and recovery
