@@ -186,3 +186,11 @@ def test_intervention_filter_applies_to_trend_student_choices(app):
     trend_student = next(s for s in at.selectbox if s.label == 'Student')
     assert trend_student.options == ['3 · Rohan', '4 · Meera']
     assert not at.exception
+
+
+def test_intervention_filter_limits_individual_report_options(app):
+    at = login(app, 'faculty')
+    at.sidebar.radio[0].set_value('Reports').run()
+    next(c for c in at.checkbox if c.label.startswith('Show only')).check().run()
+    scope = next(s for s in at.selectbox if s.label == 'Report scope')
+    assert scope.options == ['Class summary', '3 · Rohan', '4 · Meera']

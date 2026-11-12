@@ -132,7 +132,6 @@ if page in ('Dashboard', 'Reports'):
                     chart_students, x='Student_label', y='Score', color='Status', range_y=[0,100],
                     labels={'Student_label': 'Student'}, color_discrete_map=STATUS_COLORS,
                 ), 'Performance by student'), width='stretch')
-        choices = summary['Student ID'].tolist()
         history_choices = shown['Student ID'].tolist()
         if history_choices:
             st.subheader('Performance over time')
@@ -153,7 +152,7 @@ if page in ('Dashboard', 'Reports'):
                 }), hide_index=True, width='stretch')
         if user['role'] in ('Admin','Faculty'):
             st.subheader('Export a report')
-            report_student = st.selectbox('Report scope', [None] + choices,
+            report_student = st.selectbox('Report scope', [None] + history_choices,
                 format_func=lambda sid: 'Class summary' if sid is None else f"{sid} · {data.loc[data.student_id == sid, 'name'].iloc[0]}")
             st.caption('Exports use the selected subject, period, student scope and faculty intervention filter.')
             st.download_button('Download performance report (CSV)', export_report(p, subject_id, period, report_student, risk_only), 'performance-report.csv', 'text/csv', type='primary')
