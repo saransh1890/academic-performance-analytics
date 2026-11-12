@@ -132,3 +132,11 @@ def test_normal_load_performance(setup_db):
     for _ in range(20):
         summarize(records_for(setup_db['faculty']))
     assert time.perf_counter() - start < 3
+
+
+@pytest.mark.parametrize('value', ['＝SUM(1,2)', '＋1', '＠SUM(1)', '\u00a0=1'])
+def test_export_neutralizes_formula_lookalikes(setup_db, value):
+    from io import BytesIO
+    save_student(setup_db['admin'], 1, value, 'CSE', 5)
+    csv = export_report(setup_db['faculty'], student_id=1)
+    assert pd.read_csv(BytesIO(csv)).iloc[0]['Student'] == "'" + value.strip()
