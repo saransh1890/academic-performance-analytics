@@ -178,3 +178,11 @@ def test_historical_filter_excludes_future_records(app):
     assert not at.exception
     assert set(at.dataframe[0].value.Period) == {'P1'}
     assert set(at.dataframe[1].value.Period) == {'P1'}
+
+
+def test_intervention_filter_applies_to_trend_student_choices(app):
+    at = login(app, 'faculty')
+    next(c for c in at.checkbox if c.label.startswith('Show only')).check().run()
+    trend_student = next(s for s in at.selectbox if s.label == 'Student')
+    assert trend_student.options == ['3 · Rohan', '4 · Meera']
+    assert not at.exception

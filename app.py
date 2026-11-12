@@ -132,23 +132,25 @@ if page in ('Dashboard', 'Reports'):
                     chart_students, x='Student_label', y='Score', color='Status', range_y=[0,100],
                     labels={'Student_label': 'Student'}, color_discrete_map=STATUS_COLORS,
                 ), 'Performance by student'), width='stretch')
-        st.subheader('Performance over time')
         choices = summary['Student ID'].tolist()
-        selected = choices[0] if is_student else st.selectbox('Student', choices, format_func=lambda sid: f"{sid} · {data.loc[data.student_id == sid, 'name'].iloc[0]}")
-        history = data[data.student_id == selected].copy()
-        if period:
-            history = history[history.period.map(lambda v: period_key(v) <= period_key(period))]
-        means = history.groupby('period')[['attendance_pct','assignment_score','internal_score','exam_score']].mean().reset_index()
-        order = sorted(means.period, key=period_key)
-        chart = means.melt(id_vars='period', var_name='Indicator', value_name='Percentage')
-        chart['Indicator'] = chart['Indicator'].map(INDICATOR_LABELS)
-        st.plotly_chart(chart_style(px.line(chart, x='period', y='Percentage', color='Indicator', markers=True, color_discrete_sequence=PALETTE, category_orders={'period':order}, range_y=[0,100])), width='stretch')
-        with st.expander('Assessment details', expanded=is_student):
-            history = history.assign(_period_order=history.period.map(period_key)).sort_values(['_period_order','code'])
-            st.dataframe(history[['code','period','attendance_pct','assignment_score','internal_score','exam_score']].rename(columns={
-                'code':'Subject', 'period':'Period', 'attendance_pct':'Attendance (%)',
-                'assignment_score':'Assignment', 'internal_score':'Internal', 'exam_score':'Exam',
-            }), hide_index=True, width='stretch')
+        history_choices = shown['Student ID'].tolist()
+        if history_choices:
+            st.subheader('Performance over time')
+            selected = history_choices[0] if is_student else st.selectbox('Student', history_choices, format_func=lambda sid: f"{sid} · {data.loc[data.student_id == sid, 'name'].iloc[0]}")
+            history = data[data.student_id == selected].copy()
+            if period:
+                history = history[history.period.map(lambda v: period_key(v) <= period_key(period))]
+            means = history.groupby('period')[['attendance_pct','assignment_score','internal_score','exam_score']].mean().reset_index()
+            order = sorted(means.period, key=period_key)
+            chart = means.melt(id_vars='period', var_name='Indicator', value_name='Percentage')
+            chart['Indicator'] = chart['Indicator'].map(INDICATOR_LABELS)
+            st.plotly_chart(chart_style(px.line(chart, x='period', y='Percentage', color='Indicator', markers=True, color_discrete_sequence=PALETTE, category_orders={'period':order}, range_y=[0,100])), width='stretch')
+            with st.expander('Assessment details', expanded=is_student):
+                history = history.assign(_period_order=history.period.map(period_key)).sort_values(['_period_order','code'])
+                st.dataframe(history[['code','period','attendance_pct','assignment_score','internal_score','exam_score']].rename(columns={
+                    'code':'Subject', 'period':'Period', 'attendance_pct':'Attendance (%)',
+                    'assignment_score':'Assignment', 'internal_score':'Internal', 'exam_score':'Exam',
+                }), hide_index=True, width='stretch')
         if user['role'] in ('Admin','Faculty'):
             st.subheader('Export a report')
             report_student = st.selectbox('Report scope', [None] + choices,
