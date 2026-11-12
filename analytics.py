@@ -1,4 +1,5 @@
 import math
+from decimal import Decimal
 
 
 def performance_score(exam_avg, assignment_avg, attendance_pct, internal_avg):
@@ -12,7 +13,8 @@ def performance_score(exam_avg, assignment_avg, attendance_pct, internal_avg):
 def trend_status(previous_score, latest_score, threshold=10):
     if previous_score is None:
         return "No Previous Data"
-    delta = latest_score - previous_score
+    # Scores shown to users are decimal values; preserve exact threshold comparisons.
+    delta = Decimal(str(latest_score)) - Decimal(str(previous_score))
     if delta <= -threshold:
         return "Declining"
     if delta >= threshold:
