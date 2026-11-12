@@ -129,6 +129,8 @@ if page in ('Dashboard', 'Reports'):
         if user['role'] == 'Faculty':
             risk_only = st.checkbox('Show only students who need intervention', key=page+'risk')
         shown = summary[summary.Status == 'Needs Intervention'] if risk_only else summary
+        if risk_only:
+            st.caption(f'Showing {len(shown)} of {len(summary)} students. Summary metrics describe the full selection.')
         if not is_student:
             st.subheader('Student overview')
             st.dataframe(shown, hide_index=True, width='stretch', column_config={
