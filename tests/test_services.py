@@ -152,3 +152,15 @@ def test_report_preserves_quotes_commas_and_line_endings(setup_db):
     text = report.decode('utf-8-sig')
     assert text.count('\r\n') == 2
     assert list(csv.DictReader(StringIO(text, newline='')))[0]['Student'] == name
+
+
+def test_historical_report_uses_subject_and_intervention_filters_together(setup_db):
+    from io import BytesIO
+
+    faculty = setup_db['faculty']
+    # Future failure and a failure in another subject must not flag this earlier selection.
+    save_record(faculty, 1, 1, 'P3', 1, 10, 20, 20, 20)
+    save_record(faculty, 1, 2, 'P2', 1, 10, 20, 20, 20)
+    report = pd.read_csv(BytesIO(export_report(faculty, 1, 'P2', risk_only=True)))
+    assert report['Student ID'].tolist() == [3, 4]
+    assert report['Period'].tolist() == ['P2', 'P2']
