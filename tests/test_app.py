@@ -194,3 +194,11 @@ def test_intervention_filter_limits_individual_report_options(app):
     next(c for c in at.checkbox if c.label.startswith('Show only')).check().run()
     scope = next(s for s in at.selectbox if s.label == 'Report scope')
     assert scope.options == ['Class summary', '3 · Rohan', '4 · Meera']
+
+
+def test_empty_subject_can_export_csv_headers(app):
+    at = login(app, 'faculty')
+    at.sidebar.radio[0].set_value('Reports').run()
+    at.selectbox(key='Reportssubject').set_value(2).run()
+    assert not at.exception
+    assert [button.label for button in at.get('download_button')] == ['Download empty report (CSV)']

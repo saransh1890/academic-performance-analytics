@@ -94,6 +94,9 @@ if page in ('Dashboard', 'Reports'):
     summary = summarize(data, period)
     if summary.empty:
         st.info('No records are available for this selection. Your faculty can help if a record is missing.' if is_student else 'No academic records match this selection. Add a record in Academic data or choose another subject.')
+        if page == 'Reports':
+            st.download_button('Download empty report (CSV)', export_report(p, subject_id, period),
+                               'performance-report-empty.csv', 'text/csv')
     else:
         c1,c2,c3,c4 = st.columns(4)
         if is_student:
