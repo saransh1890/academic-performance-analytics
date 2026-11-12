@@ -125,7 +125,13 @@ if page in ('Dashboard', 'Reports'):
             if shown.empty:
                 st.info('No students meet the intervention criteria in this selection.')
             else:
-                st.plotly_chart(chart_style(px.bar(shown, x='Student', y='Score', color='Status', range_y=[0,100], color_discrete_map=STATUS_COLORS), 'Performance by student'), width='stretch')
+                chart_students = shown.assign(
+                    Student_label=shown['Student ID'].astype(str) + ' · ' + shown['Student']
+                )
+                st.plotly_chart(chart_style(px.bar(
+                    chart_students, x='Student_label', y='Score', color='Status', range_y=[0,100],
+                    labels={'Student_label': 'Student'}, color_discrete_map=STATUS_COLORS,
+                ), 'Performance by student'), width='stretch')
         st.subheader('Performance over time')
         choices = summary['Student ID'].tolist()
         selected = choices[0] if is_student else st.selectbox('Student', choices, format_func=lambda sid: f"{sid} · {data.loc[data.student_id == sid, 'name'].iloc[0]}")
