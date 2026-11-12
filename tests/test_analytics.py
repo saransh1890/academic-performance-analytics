@@ -34,3 +34,9 @@ def test_invalid_score_inputs_rejected():
 )
 def test_decimal_scores_at_trend_threshold(previous, latest, expected):
     assert trend_status(previous, latest) == expected
+
+
+@pytest.mark.parametrize('invalid', [True, False, 10**400])
+def test_boolean_and_oversized_indicators_are_rejected(invalid):
+    with pytest.raises(ValueError, match='between 0 and 100'):
+        performance_score(invalid, 80, 80, 80)
