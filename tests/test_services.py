@@ -140,3 +140,15 @@ def test_export_neutralizes_formula_lookalikes(setup_db, value):
     save_student(setup_db['admin'], 1, value, 'CSE', 5)
     csv = export_report(setup_db['faculty'], student_id=1)
     assert pd.read_csv(BytesIO(csv)).iloc[0]['Student'] == "'" + value.strip()
+
+
+def test_report_preserves_quotes_commas_and_line_endings(setup_db):
+    import csv
+    from io import StringIO
+
+    name = 'José, "JJ"'
+    save_student(setup_db['admin'], 1, name, 'CSE', 5)
+    report = export_report(setup_db['faculty'], student_id=1)
+    text = report.decode('utf-8-sig')
+    assert text.count('\r\n') == 2
+    assert list(csv.DictReader(StringIO(text, newline='')))[0]['Student'] == name

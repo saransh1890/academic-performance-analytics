@@ -199,7 +199,7 @@ def export_report(principal, subject_id=None, period=None, student_id=None, risk
     # Prevent spreadsheet applications interpreting names as formulas.
     for column in ('Student', 'Program', 'Period', 'Trend', 'Status', 'Reasons'):
         frame[column] = frame[column].map(spreadsheet_safe)
-    return frame.to_csv(index=False).encode('utf-8-sig')
+    return frame.to_csv(index=False, lineterminator='\r\n').encode('utf-8-sig')
 
 
 def administration(principal):
