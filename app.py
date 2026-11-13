@@ -7,6 +7,7 @@ import streamlit as st
 from ui import apply_styles, chart_style, login_welcome, PALETTE, STATUS_COLORS, INDICATOR_LABELS
 from database import init_db, backup_database
 from pathlib import Path
+import re
 from datetime import datetime, timezone
 from services import (authenticate, authorize, catalog, records_for, summarize,
                       export_report, save_student, save_subject, save_user,
@@ -72,6 +73,15 @@ def handle(action, *args):
     except (ValueError, PermissionError, sqlite3.IntegrityError) as exc:
         st.error(f'Could not save: {exc}')
 
+def report_filename(subject_id, period, student_id=None, risk_only=False):
+    period_label = re.sub(r'[^a-z0-9]+', '-', str(period).lower()).strip('-') if period else 'latest'
+    parts = ['performance', f'subject-{subject_id}' if subject_id is not None else 'all-subjects',
+             period_label or 'period', f'student-{student_id}' if student_id is not None else 'class']
+    if risk_only:
+        parts.append('intervention')
+    return '-'.join(parts) + '.csv'
+
+
 def filters(prefix):
     left, right = st.columns(2, gap='medium')
     subject_ids = [None] + subjects.subject_id.tolist()
@@ -94,6 +104,9 @@ if page in ('Dashboard', 'Reports'):
     summary = summarize(data, period)
     if summary.empty:
         st.info('No records are available for this selection. Your faculty can help if a record is missing.' if is_student else 'No academic records match this selection. Add a record in Academic data or choose another subject.')
+        if page == 'Reports':
+            st.download_button('Download empty report (CSV)', export_report(p, subject_id, period),
+                               report_filename(subject_id, period), 'text/csv')
     else:
         c1,c2,c3,c4 = st.columns(4)
         if is_student:
@@ -116,6 +129,8 @@ if page in ('Dashboard', 'Reports'):
         if user['role'] == 'Faculty':
             risk_only = st.checkbox('Show only students who need intervention', key=page+'risk')
         shown = summary[summary.Status == 'Needs Intervention'] if risk_only else summary
+        if risk_only:
+            st.caption(f'Showing {len(shown)} of {len(summary)} students. Summary metrics describe the full selection.')
         if not is_student:
             st.subheader('Student overview')
             st.dataframe(shown, hide_index=True, width='stretch', column_config={
@@ -125,30 +140,40 @@ if page in ('Dashboard', 'Reports'):
             if shown.empty:
                 st.info('No students meet the intervention criteria in this selection.')
             else:
-                st.plotly_chart(chart_style(px.bar(shown, x='Student', y='Score', color='Status', range_y=[0,100], color_discrete_map=STATUS_COLORS), 'Performance by student'), width='stretch')
-        st.subheader('Performance over time')
-        choices = summary['Student ID'].tolist()
-        selected = choices[0] if is_student else st.selectbox('Student', choices, format_func=lambda sid: f"{sid} · {data.loc[data.student_id == sid, 'name'].iloc[0]}")
-        history = data[data.student_id == selected].copy()
-        if period:
-            history = history[history.period.map(lambda v: period_key(v) <= period_key(period))]
-        means = history.groupby('period')[['attendance_pct','assignment_score','internal_score','exam_score']].mean().reset_index()
-        order = sorted(means.period, key=period_key)
-        chart = means.melt(id_vars='period', var_name='Indicator', value_name='Percentage')
-        chart['Indicator'] = chart['Indicator'].map(INDICATOR_LABELS)
-        st.plotly_chart(chart_style(px.line(chart, x='period', y='Percentage', color='Indicator', markers=True, color_discrete_sequence=PALETTE, category_orders={'period':order}, range_y=[0,100])), width='stretch')
-        with st.expander('Assessment details', expanded=is_student):
-            history = history.assign(_period_order=history.period.map(period_key)).sort_values(['_period_order','code'])
-            st.dataframe(history[['code','period','attendance_pct','assignment_score','internal_score','exam_score']].rename(columns={
-                'code':'Subject', 'period':'Period', 'attendance_pct':'Attendance (%)',
-                'assignment_score':'Assignment', 'internal_score':'Internal', 'exam_score':'Exam',
-            }), hide_index=True, width='stretch')
+                chart_students = shown.assign(
+                    Student_label=shown['Student ID'].astype(str) + ' · ' + shown['Student']
+                )
+                st.plotly_chart(chart_style(px.bar(
+                    chart_students, x='Student_label', y='Score', color='Status', range_y=[0,100],
+                    labels={'Student_label': 'Student'}, color_discrete_map=STATUS_COLORS,
+                ), 'Performance by student'), width='stretch')
+        history_choices = shown['Student ID'].tolist()
+        if history_choices:
+            st.subheader('Performance over time')
+            selected = history_choices[0] if is_student else st.selectbox('Student', history_choices, format_func=lambda sid: f"{sid} · {data.loc[data.student_id == sid, 'name'].iloc[0]}")
+            history = data[data.student_id == selected].copy()
+            if period:
+                history = history[history.period.map(lambda v: period_key(v) <= period_key(period))]
+            means = history.groupby('period')[['attendance_pct','assignment_score','internal_score','exam_score']].mean().reset_index()
+            order = sorted(means.period, key=period_key)
+            chart = means.melt(id_vars='period', var_name='Indicator', value_name='Percentage')
+            chart['Indicator'] = chart['Indicator'].map(INDICATOR_LABELS)
+            st.plotly_chart(chart_style(px.line(chart, x='period', y='Percentage', color='Indicator', markers=True, color_discrete_sequence=PALETTE, category_orders={'period':order}, range_y=[0,100])), width='stretch')
+            with st.expander('Assessment details', expanded=is_student):
+                history = history.assign(_period_order=history.period.map(period_key)).sort_values(['_period_order','code'])
+                st.dataframe(history[['code','period','attendance_pct','assignment_score','internal_score','exam_score']].rename(columns={
+                    'code':'Subject', 'period':'Period', 'attendance_pct':'Attendance (%)',
+                    'assignment_score':'Assignment', 'internal_score':'Internal', 'exam_score':'Exam',
+                }), hide_index=True, width='stretch')
         if user['role'] in ('Admin','Faculty'):
             st.subheader('Export a report')
-            report_student = st.selectbox('Report scope', [None] + choices,
+            report_student = st.selectbox('Report scope', [None] + history_choices,
                 format_func=lambda sid: 'Class summary' if sid is None else f"{sid} · {data.loc[data.student_id == sid, 'name'].iloc[0]}")
             st.caption('Exports use the selected subject, period, student scope and faculty intervention filter.')
-            st.download_button('Download performance report (CSV)', export_report(p, subject_id, period, report_student, risk_only), 'performance-report.csv', 'text/csv', type='primary')
+            st.download_button(
+                'Download performance report (CSV)', export_report(p, subject_id, period, report_student, risk_only),
+                report_filename(subject_id, period, report_student, risk_only), 'text/csv', type='primary',
+            )
     with st.expander('How performance is calculated'):
         st.write('Score: 40% examination + 25% assignment + 20% attendance + 15% internal assessment. Subjects are equally weighted within each period.')
         st.write('Support is recommended if the score is below 50, attendance is below 75%, or performance falls by at least 10 points compared with the previous available period.')

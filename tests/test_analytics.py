@@ -26,3 +26,17 @@ def test_low_attendance_triggers_intervention():
 def test_invalid_score_inputs_rejected():
     with pytest.raises(ValueError):
         performance_score(110, 80, 80, 80)
+
+
+@pytest.mark.parametrize(
+    ('previous', 'latest', 'expected'),
+    [(4.08, 14.08, 'Improving'), (14.08, 4.08, 'Declining'), (4.08, 14.07, 'Stable')],
+)
+def test_decimal_scores_at_trend_threshold(previous, latest, expected):
+    assert trend_status(previous, latest) == expected
+
+
+@pytest.mark.parametrize('invalid', [True, False, 10**400])
+def test_boolean_and_oversized_indicators_are_rejected(invalid):
+    with pytest.raises(ValueError, match='between 0 and 100'):
+        performance_score(invalid, 80, 80, 80)

@@ -21,8 +21,12 @@ On macOS/Linux use `.venv/bin/python` instead. Python 3.11 is the reference envi
 - Faculty: view class analytics, filter by subject/period, optionally show only students who need intervention, save attendance and marks, and export a class or individual-student report.
 - Admin: view overall analytics and reports, maintain academic data, students, subjects and accounts, inspect the latest 200 audit entries and create local database backups. The intervention-only checkbox is Faculty-only.
 - Academic data: choose a student, subject and P1/P2/etc. Existing marks and attendance percentage preload for editing. Enter attendance as class counts or a percentage and assessment values out of 100. Saving the same student/subject/period updates its record.
-- Reports: choose Class summary or a named student under Report scope. CSV output follows the subject, period, report scope and active Faculty intervention filter. An empty selection exports headers with no rows.
+- Reports: choose Class summary or a named student under Report scope. CSV output follows the subject, period, report scope and active Faculty intervention filter. The filename identifies the selected scope without including student names. An empty selection exports headers with no rows.
 - Administration forms: use an existing ID to update a student or subject. Account save creates an account or resets its password and permissions. Sign out using the sidebar.
+
+### Verify a filtered report
+
+In Faculty Reports, select SE101 and P2, enable the intervention filter, and download the class summary. With fresh seed data, the CSV should contain Rohan and Meera, both for P2. Choose Rohan for an individual report and check that it has one row and the filename includes student ID 3. Switch to DB101 to check that a report with no records still downloads with column headers.
 
 ## Rules
 

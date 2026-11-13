@@ -132,3 +132,35 @@ def test_normal_load_performance(setup_db):
     for _ in range(20):
         summarize(records_for(setup_db['faculty']))
     assert time.perf_counter() - start < 3
+
+
+@pytest.mark.parametrize('value', ['＝SUM(1,2)', '＋1', '＠SUM(1)', '\u00a0=1'])
+def test_export_neutralizes_formula_lookalikes(setup_db, value):
+    from io import BytesIO
+    save_student(setup_db['admin'], 1, value, 'CSE', 5)
+    csv = export_report(setup_db['faculty'], student_id=1)
+    assert pd.read_csv(BytesIO(csv)).iloc[0]['Student'] == "'" + value.strip()
+
+
+def test_report_preserves_quotes_commas_and_line_endings(setup_db):
+    import csv
+    from io import StringIO
+
+    name = 'José, "JJ"'
+    save_student(setup_db['admin'], 1, name, 'CSE', 5)
+    report = export_report(setup_db['faculty'], student_id=1)
+    text = report.decode('utf-8-sig')
+    assert text.count('\r\n') == 2
+    assert list(csv.DictReader(StringIO(text, newline='')))[0]['Student'] == name
+
+
+def test_historical_report_uses_subject_and_intervention_filters_together(setup_db):
+    from io import BytesIO
+
+    faculty = setup_db['faculty']
+    # Future failure and a failure in another subject must not flag this earlier selection.
+    save_record(faculty, 1, 1, 'P3', 1, 10, 20, 20, 20)
+    save_record(faculty, 1, 2, 'P2', 1, 10, 20, 20, 20)
+    report = pd.read_csv(BytesIO(export_report(faculty, 1, 'P2', risk_only=True)))
+    assert report['Student ID'].tolist() == [3, 4]
+    assert report['Period'].tolist() == ['P2', 'P2']

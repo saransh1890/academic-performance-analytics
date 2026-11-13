@@ -1,10 +1,11 @@
-import math
+from decimal import Decimal
 
 
 def performance_score(exam_avg, assignment_avg, attendance_pct, internal_avg):
     """Weighted score, assuming each input is on a 0-100 scale."""
     values = [exam_avg, assignment_avg, attendance_pct, internal_avg]
-    if any(not isinstance(v, (int, float)) or not math.isfinite(v) or v < 0 or v > 100 for v in values):
+    if any(isinstance(v, bool) or not isinstance(v, (int, float))
+           or not 0 <= v <= 100 for v in values):
         raise ValueError("All indicators must be between 0 and 100")
     return round(0.40 * exam_avg + 0.25 * assignment_avg +
                  0.20 * attendance_pct + 0.15 * internal_avg, 2)
@@ -12,7 +13,8 @@ def performance_score(exam_avg, assignment_avg, attendance_pct, internal_avg):
 def trend_status(previous_score, latest_score, threshold=10):
     if previous_score is None:
         return "No Previous Data"
-    delta = latest_score - previous_score
+    # Scores shown to users are decimal values; preserve exact threshold comparisons.
+    delta = Decimal(str(latest_score)) - Decimal(str(previous_score))
     if delta <= -threshold:
         return "Declining"
     if delta >= threshold:

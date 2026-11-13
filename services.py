@@ -1,3 +1,4 @@
+import unicodedata
 """Authorization, validated writes, reporting and analytics application layer."""
 import hashlib
 import hmac
@@ -178,6 +179,16 @@ def summarize(records, period=None):
     return pd.DataFrame(rows, columns=columns)
 
 
+def spreadsheet_safe(value):
+    """Prefix text that spreadsheet software could interpret as a formula."""
+    if not isinstance(value, str):
+        return value
+    normalized = unicodedata.normalize('NFKC', value)
+    if normalized.startswith(('\t', '\r', '\n')) or normalized.lstrip().startswith(('=', '+', '-', '@')):
+        return "'" + value
+    return value
+
+
 def export_report(principal, subject_id=None, period=None, student_id=None, risk_only=False):
     authorize(principal, ('Admin', 'Faculty'))
     frame = summarize(records_for(principal, subject_id), period)
@@ -187,8 +198,8 @@ def export_report(principal, subject_id=None, period=None, student_id=None, risk
         frame = frame[frame.Status == 'Needs Intervention']
     # Prevent spreadsheet applications interpreting names as formulas.
     for column in ('Student', 'Program', 'Period', 'Trend', 'Status', 'Reasons'):
-        frame[column] = frame[column].map(lambda v: "'" + v if isinstance(v, str) and v.startswith(('=', '+', '-', '@', '\t', '\r', '\n')) else v)
-    return frame.to_csv(index=False).encode('utf-8-sig')
+        frame[column] = frame[column].map(spreadsheet_safe)
+    return frame.to_csv(index=False, lineterminator='\r\n').encode('utf-8-sig')
 
 
 def administration(principal):

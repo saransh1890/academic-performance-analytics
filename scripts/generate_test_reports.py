@@ -14,6 +14,14 @@ OUT = ROOT/'docs/reports'
 EVIDENCE = OUT/'evidence'
 # requirement, scenario, expected behavior
 CASES = {
+ 'test_decimal_scores_at_trend_threshold': ('F011/012','Decimal trend thresholds','An exact decimal 10-point change is directional; a smaller change stays stable'),
+ 'test_boolean_and_oversized_indicators_are_rejected': ('SR006','Invalid indicator types and magnitudes','Boolean values and oversized integers raise a validation error'),
+ 'test_export_neutralizes_formula_lookalikes': ('F014,SR006','Unicode formula markers in CSV','Formula-like exported text receives a literal prefix'),
+ 'test_report_preserves_quotes_commas_and_line_endings': ('F014','Spreadsheet-compatible CSV','Unicode text with commas and quotes round-trips with CRLF line endings'),
+ 'test_intervention_filter_applies_to_trend_student_choices': ('F010/013','Filtered trend drill-down','Only students in the filtered class table are selectable'),
+ 'test_intervention_filter_limits_individual_report_options': ('F013/014/016','Filtered report choices','Class summary and only matching individual students are selectable'),
+ 'test_empty_subject_can_export_csv_headers': ('F014/016','Empty report download','The Reports workspace offers a download for a subject with no records'),
+ 'test_historical_report_uses_subject_and_intervention_filters_together': ('F011/013/014/016','Combined historical report filters','Future or unrelated subject records do not flag the selected student'),
  'test_performance_score': ('F008,NF006','Equal assessment indicators','All indicators at 80 produce score 80'),
  'test_declining_trend': ('F011/012','Declining score','75 to 64 is Declining'),
  'test_improving_trend': ('F011','Improving score','60 to 72 is Improving'),
