@@ -96,12 +96,11 @@ def save_student(principal, student_id, name, program, semester):
 
 def save_subject(principal, subject_id, code, name):
     user = authorize(principal, ('Admin',))
-    if int(subject_id) <= 0:
-        raise ValueError('Use a positive subject ID')
+    subject_id = positive_whole_number(subject_id, 'Subject ID')
     with get_conn() as conn:
         conn.execute('''INSERT INTO subjects VALUES(?,?,?) ON CONFLICT(subject_id)
           DO UPDATE SET code=excluded.code,name=excluded.name''',
-          (int(subject_id), text(code, 'Code'), text(name, 'Subject name')))
+          (subject_id, text(code, 'Code'), text(name, 'Subject name')))
         audit(conn, user, 'subject.save', str(subject_id))
 
 
