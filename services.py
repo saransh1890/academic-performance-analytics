@@ -126,7 +126,10 @@ def save_record(principal, student_id, subject_id, period, attended, total, assi
     period = text(period, 'Period').upper()
     if not re.fullmatch(r'P[1-9][0-9]{0,3}', period):
         raise ValueError('Period must be P1, P2, ... P9999')
-    if not math.isfinite(total) or not math.isfinite(attended) or total <= 0 or attended < 0 or attended > total:
+    if any(isinstance(value, bool) or not isinstance(value, (int, float))
+           or (isinstance(value, float) and not math.isfinite(value)) for value in (attended, total)):
+        raise ValueError('Attendance requires numeric attended and total values')
+    if total <= 0 or attended < 0 or attended > total:
         raise ValueError('Attendance requires 0 <= attended <= total and total > 0')
     attendance = round(attended / total * 100, 2)
     performance_score(exam, assignment, attendance, internal)
