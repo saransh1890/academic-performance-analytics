@@ -27,3 +27,11 @@ def test_subject_validation_rejects_partial_ids_and_missing_text(principals, sub
     assert administration(principals['admin'])[1].empty
     with pytest.raises(ValueError):
         records_for(principals['faculty'], subject_id=2.5)
+
+
+@pytest.mark.parametrize('attended,total', [(True, 10), (7, None), ('7', 10)])
+def test_nonnumeric_attendance_never_creates_a_record(principals, attended, total):
+    with pytest.raises(ValueError, match='requires numeric'):
+        save_record(principals['faculty'], 1, 1, 'P3', attended, total, 80, 80, 80)
+    assert records_for(principals['faculty'], period='P3').empty
+    assert administration(principals['admin'])[1].empty
