@@ -164,7 +164,7 @@ def records_for(principal, subject_id=None, period=None):
         params.append(user['student_id'])
     if subject_id is not None:
         clauses.append('r.subject_id=?')
-        params.append(int(subject_id))
+        params.append(positive_whole_number(subject_id, 'Subject ID'))
     if period:
         clauses.append('r.period=?')
         params.append(period)
