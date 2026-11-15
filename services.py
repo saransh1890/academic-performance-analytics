@@ -173,7 +173,7 @@ def records_for(principal, subject_id=None, period=None):
     if clauses:
         query += ' WHERE ' + ' AND '.join(clauses)
     with get_conn() as conn:
-        return pd.read_sql_query(query, conn, params=params)
+        return pd.read_sql_query(query + ' ORDER BY r.student_id, r.subject_id, r.record_id', conn, params=params)
 
 
 def period_key(period):
