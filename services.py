@@ -134,6 +134,7 @@ def save_record(principal, student_id, subject_id, period, attended, total, assi
     attendance = round(attended / total * 100, 2)
     performance_score(exam, assignment, attendance, internal)
     with get_conn() as conn:
+        conn.execute('BEGIN IMMEDIATE')
         before = conn.execute('SELECT * FROM academic_records WHERE student_id=? AND subject_id=? AND period=?', (student_id, subject_id, period)).fetchone()
         conn.execute('''INSERT INTO academic_records(student_id,subject_id,period,attendance_pct,assignment_score,internal_score,exam_score)
           VALUES(?,?,?,?,?,?,?) ON CONFLICT(student_id,subject_id,period) DO UPDATE SET
