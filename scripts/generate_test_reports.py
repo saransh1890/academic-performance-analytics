@@ -34,6 +34,7 @@ CASES = {
  'test_student_validation_preserves_existing_profile': ('F002,SR006','Invalid student profile IDs','An invalid ID or semester leaves both the profile and audit unchanged'),
  'test_subject_validation_rejects_partial_ids_and_missing_text': ('F003,F016,SR006','Malformed subject input','Invalid subject identifiers and missing fields are rejected before write or read'),
  'test_nonnumeric_attendance_never_creates_a_record': ('F004/005,SR006','Invalid attendance types','Nonnumeric or boolean attendance does not insert records or audit entries'),
+ 'test_record_audit_labels_updated_marks': ('F004/017,SR005','Audited record edit','One record remains and the audit includes previous values and labeled new indicators'),
  'test_invalid_writes_are_atomic': ('F004/006/007,SR006','Invalid academic indicators','Invalid counts, marks and nonfinite inputs fail without records or audit entries'),
  'test_foreign_keys_and_period_validation': ('SR006','Invalid links and period','Unknown student and invalid period are rejected'),
  'test_period_aggregation_and_natural_order': ('F008/011/012/016','Multi-subject historical aggregation','P10 follows P2; subject-average score is 68; no previous data and absent periods are handled'),

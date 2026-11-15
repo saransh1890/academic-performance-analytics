@@ -35,3 +35,13 @@ def test_nonnumeric_attendance_never_creates_a_record(principals, attended, tota
         save_record(principals['faculty'], 1, 1, 'P3', attended, total, 80, 80, 80)
     assert records_for(principals['faculty'], period='P3').empty
     assert administration(principals['admin'])[1].empty
+
+
+def test_record_audit_labels_updated_marks(principals):
+    save_record(principals['faculty'], 1, 1, 'P1', 7, 10, 78, 79, 81)
+    rows = records_for(principals['faculty'], 1, 'P1')
+    assert len(rows[rows.student_id == 1]) == 1
+    audit = administration(principals['admin'])[1].iloc[0]
+    assert audit.action == 'record.update'
+    assert "'exam_score': 86.0" in audit.detail
+    assert 'after=attendance:70.0, assignment:78, internal:79, exam:81' in audit.detail
