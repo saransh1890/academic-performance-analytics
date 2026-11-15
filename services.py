@@ -62,31 +62,45 @@ def audit(conn, user, action, detail):
 
 
 def text(value, label):
-    value = str(value).strip()
+    if not isinstance(value, str):
+        raise ValueError(f'{label} must contain 1 to 120 characters')
+    value = value.strip()
     if not value or len(value) > 120:
         raise ValueError(f'{label} must contain 1 to 120 characters')
     return value
 
 
+def positive_whole_number(value, label):
+    if isinstance(value, str):
+        if not re.fullmatch(r'[0-9]+', value.strip()):
+            raise ValueError(f'{label} must be a positive whole number')
+        value = int(value)
+    if (isinstance(value, bool) or not isinstance(value, (int, float))
+            or not 1 <= value <= 2**63 - 1 or int(value) != value):
+        raise ValueError(f'{label} must be a positive whole number')
+    return int(value)
+
+
 def save_student(principal, student_id, name, program, semester):
     user = authorize(principal, ('Admin',))
-    if int(student_id) <= 0 or not 1 <= int(semester) <= 12:
-        raise ValueError('Use a positive student ID and semester between 1 and 12')
+    student_id = positive_whole_number(student_id, 'Student ID')
+    semester = positive_whole_number(semester, 'Semester')
+    if semester > 12:
+        raise ValueError('Semester must be between 1 and 12')
     with get_conn() as conn:
         conn.execute('''INSERT INTO students VALUES(?,?,?,?) ON CONFLICT(student_id)
           DO UPDATE SET name=excluded.name,program=excluded.program,semester=excluded.semester''',
-          (int(student_id), text(name, 'Name'), text(program, 'Program'), int(semester)))
+          (student_id, text(name, 'Name'), text(program, 'Program'), semester))
         audit(conn, user, 'student.save', str(student_id))
 
 
 def save_subject(principal, subject_id, code, name):
     user = authorize(principal, ('Admin',))
-    if int(subject_id) <= 0:
-        raise ValueError('Use a positive subject ID')
+    subject_id = positive_whole_number(subject_id, 'Subject ID')
     with get_conn() as conn:
         conn.execute('''INSERT INTO subjects VALUES(?,?,?) ON CONFLICT(subject_id)
           DO UPDATE SET code=excluded.code,name=excluded.name''',
-          (int(subject_id), text(code, 'Code'), text(name, 'Subject name')))
+          (subject_id, text(code, 'Code'), text(name, 'Subject name')))
         audit(conn, user, 'subject.save', str(subject_id))
 
 
@@ -107,14 +121,20 @@ def save_user(principal, username, password, role, student_id=None, active=True)
 
 def save_record(principal, student_id, subject_id, period, attended, total, assignment, internal, exam):
     user = authorize(principal, ('Admin', 'Faculty'))
+    student_id = positive_whole_number(student_id, 'Student ID')
+    subject_id = positive_whole_number(subject_id, 'Subject ID')
     period = text(period, 'Period').upper()
     if not re.fullmatch(r'P[1-9][0-9]{0,3}', period):
         raise ValueError('Period must be P1, P2, ... P9999')
-    if not math.isfinite(total) or not math.isfinite(attended) or total <= 0 or attended < 0 or attended > total:
+    if any(isinstance(value, bool) or not isinstance(value, (int, float))
+           or (isinstance(value, float) and not math.isfinite(value)) for value in (attended, total)):
+        raise ValueError('Attendance requires numeric attended and total values')
+    if total <= 0 or attended < 0 or attended > total:
         raise ValueError('Attendance requires 0 <= attended <= total and total > 0')
     attendance = round(attended / total * 100, 2)
     performance_score(exam, assignment, attendance, internal)
     with get_conn() as conn:
+        conn.execute('BEGIN IMMEDIATE')
         before = conn.execute('SELECT * FROM academic_records WHERE student_id=? AND subject_id=? AND period=?', (student_id, subject_id, period)).fetchone()
         conn.execute('''INSERT INTO academic_records(student_id,subject_id,period,attendance_pct,assignment_score,internal_score,exam_score)
           VALUES(?,?,?,?,?,?,?) ON CONFLICT(student_id,subject_id,period) DO UPDATE SET
@@ -122,7 +142,9 @@ def save_record(principal, student_id, subject_id, period, attended, total, assi
           internal_score=excluded.internal_score,exam_score=excluded.exam_score''',
           (student_id, subject_id, period, attendance, assignment, internal, exam))
         audit(conn, user, 'record.update' if before else 'record.create',
-              f'student={student_id};subject={subject_id};period={period};before={dict(before) if before else None};after={(attendance, assignment, internal, exam)}')
+              f'student={student_id};subject={subject_id};period={period};'
+              f'before={dict(before) if before else None};'
+              f'after=attendance:{attendance}, assignment:{assignment}, internal:{internal}, exam:{exam}')
 
 
 def catalog(principal):
@@ -142,7 +164,7 @@ def records_for(principal, subject_id=None, period=None):
         params.append(user['student_id'])
     if subject_id is not None:
         clauses.append('r.subject_id=?')
-        params.append(int(subject_id))
+        params.append(positive_whole_number(subject_id, 'Subject ID'))
     if period:
         clauses.append('r.period=?')
         params.append(period)
@@ -151,7 +173,7 @@ def records_for(principal, subject_id=None, period=None):
     if clauses:
         query += ' WHERE ' + ' AND '.join(clauses)
     with get_conn() as conn:
-        return pd.read_sql_query(query, conn, params=params)
+        return pd.read_sql_query(query + ' ORDER BY r.student_id, r.subject_id, r.record_id', conn, params=params)
 
 
 def period_key(period):
