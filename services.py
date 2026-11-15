@@ -62,7 +62,9 @@ def audit(conn, user, action, detail):
 
 
 def text(value, label):
-    value = str(value).strip()
+    if not isinstance(value, str):
+        raise ValueError(f'{label} must contain 1 to 120 characters')
+    value = value.strip()
     if not value or len(value) > 120:
         raise ValueError(f'{label} must contain 1 to 120 characters')
     return value
