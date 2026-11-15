@@ -70,14 +70,27 @@ def text(value, label):
     return value
 
 
+def positive_whole_number(value, label):
+    if isinstance(value, str):
+        if not re.fullmatch(r'[0-9]+', value.strip()):
+            raise ValueError(f'{label} must be a positive whole number')
+        value = int(value)
+    if (isinstance(value, bool) or not isinstance(value, (int, float))
+            or not 1 <= value <= 2**63 - 1 or int(value) != value):
+        raise ValueError(f'{label} must be a positive whole number')
+    return int(value)
+
+
 def save_student(principal, student_id, name, program, semester):
     user = authorize(principal, ('Admin',))
-    if int(student_id) <= 0 or not 1 <= int(semester) <= 12:
-        raise ValueError('Use a positive student ID and semester between 1 and 12')
+    student_id = positive_whole_number(student_id, 'Student ID')
+    semester = positive_whole_number(semester, 'Semester')
+    if semester > 12:
+        raise ValueError('Semester must be between 1 and 12')
     with get_conn() as conn:
         conn.execute('''INSERT INTO students VALUES(?,?,?,?) ON CONFLICT(student_id)
           DO UPDATE SET name=excluded.name,program=excluded.program,semester=excluded.semester''',
-          (int(student_id), text(name, 'Name'), text(program, 'Program'), int(semester)))
+          (student_id, text(name, 'Name'), text(program, 'Program'), semester))
         audit(conn, user, 'student.save', str(student_id))
 
 
