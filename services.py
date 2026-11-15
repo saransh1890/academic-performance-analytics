@@ -142,7 +142,9 @@ def save_record(principal, student_id, subject_id, period, attended, total, assi
           internal_score=excluded.internal_score,exam_score=excluded.exam_score''',
           (student_id, subject_id, period, attendance, assignment, internal, exam))
         audit(conn, user, 'record.update' if before else 'record.create',
-              f'student={student_id};subject={subject_id};period={period};before={dict(before) if before else None};after={(attendance, assignment, internal, exam)}')
+              f'student={student_id};subject={subject_id};period={period};'
+              f'before={dict(before) if before else None};'
+              f'after=attendance:{attendance}, assignment:{assignment}, internal:{internal}, exam:{exam}')
 
 
 def catalog(principal):
