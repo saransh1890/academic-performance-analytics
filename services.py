@@ -121,6 +121,8 @@ def save_user(principal, username, password, role, student_id=None, active=True)
 
 def save_record(principal, student_id, subject_id, period, attended, total, assignment, internal, exam):
     user = authorize(principal, ('Admin', 'Faculty'))
+    student_id = positive_whole_number(student_id, 'Student ID')
+    subject_id = positive_whole_number(subject_id, 'Subject ID')
     period = text(period, 'Period').upper()
     if not re.fullmatch(r'P[1-9][0-9]{0,3}', period):
         raise ValueError('Period must be P1, P2, ... P9999')
