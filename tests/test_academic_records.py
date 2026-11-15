@@ -18,3 +18,12 @@ def test_student_validation_preserves_existing_profile(principals, student, seme
         save_student(principals['admin'], student, 'Changed', 'CSE', semester)
     assert records_for(principals['faculty']).iloc[0]['name'] == 'Aarav'
     assert administration(principals['admin'])[1].empty
+
+
+@pytest.mark.parametrize('subject,code', [(2.5, 'CHANGE'), (2, None)])
+def test_subject_validation_rejects_partial_ids_and_missing_text(principals, subject, code):
+    with pytest.raises(ValueError):
+        save_subject(principals['admin'], subject, code, 'Bad update')
+    assert administration(principals['admin'])[1].empty
+    with pytest.raises(ValueError):
+        records_for(principals['faculty'], subject_id=2.5)

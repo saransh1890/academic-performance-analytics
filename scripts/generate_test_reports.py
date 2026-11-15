@@ -32,6 +32,7 @@ CASES = {
  'test_student_privacy_and_write_denial': ('F015,SR001/002/003','Student privacy and role denial','Student reads only own records; unauthorized writes/reports/admin access are denied'),
  'test_attendance_upsert_and_audit': ('F004/005/017,SR005','Attendance update and audit','4 of 4 classes yields 100 percent; one record remains and both operations are audited'),
  'test_student_validation_preserves_existing_profile': ('F002,SR006','Invalid student profile IDs','An invalid ID or semester leaves both the profile and audit unchanged'),
+ 'test_subject_validation_rejects_partial_ids_and_missing_text': ('F003,F016,SR006','Malformed subject input','Invalid subject identifiers and missing fields are rejected before write or read'),
  'test_invalid_writes_are_atomic': ('F004/006/007,SR006','Invalid academic indicators','Invalid counts, marks and nonfinite inputs fail without records or audit entries'),
  'test_foreign_keys_and_period_validation': ('SR006','Invalid links and period','Unknown student and invalid period are rejected'),
  'test_period_aggregation_and_natural_order': ('F008/011/012/016','Multi-subject historical aggregation','P10 follows P2; subject-average score is 68; no previous data and absent periods are handled'),
