@@ -42,14 +42,16 @@ def authenticate(username, password):
     with get_conn() as conn:
         conn.execute('BEGIN IMMEDIATE')
         attempt = conn.execute('SELECT * FROM login_attempts WHERE username=?', (username,)).fetchone()
-        if attempt and attempt['failures'] >= 5 and time.time() - attempt['last_attempt'] < 300:
+        now = time.time()
+        attempt_is_current = bool(attempt and now - attempt['last_attempt'] < 300)
+        if attempt_is_current and attempt['failures'] >= 5:
             return None
         user = conn.execute('SELECT * FROM users WHERE username=? AND active=1', (username,)).fetchone()
         if user and verify_password(password, user['password_hash']):
             conn.execute('DELETE FROM login_attempts WHERE username=?', (username,))
             return Principal(username)
-        count = attempt['failures'] if attempt and time.time() - attempt['last_attempt'] < 300 else 0
-        conn.execute('INSERT OR REPLACE INTO login_attempts VALUES(?,?,?)', (username, count + 1, time.time()))
+        count = attempt['failures'] if attempt_is_current else 0
+        conn.execute('INSERT OR REPLACE INTO login_attempts VALUES(?,?,?)', (username, count + 1, now))
     return None
 
 
