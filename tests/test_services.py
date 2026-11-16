@@ -21,6 +21,8 @@ def test_authentication_and_password_storage(setup_db):
     assert not verify_password('incorrect', password_hash('a-long-password'))
     wrong_scheme = password_hash('a-long-password').replace('pbkdf2_sha256', 'unknown', 1)
     assert not verify_password('a-long-password', wrong_scheme)
+    oversized = password_hash('a-long-password').replace('$260000$', '$999999999999$', 1)
+    assert not verify_password('a-long-password', oversized)
 
 
 def test_student_privacy_and_write_denial(setup_db):
