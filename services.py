@@ -17,7 +17,7 @@ class Principal:
 
 
 def password_hash(password):
-    if len(password) < 10:
+    if not isinstance(password, str) or len(password) < 10:
         raise ValueError('Password must contain at least 10 characters')
     salt = os.urandom(16).hex()
     digest = hashlib.pbkdf2_hmac('sha256', password.encode(), bytes.fromhex(salt), 260000).hex()
