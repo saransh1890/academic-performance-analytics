@@ -40,6 +40,7 @@ def verify_password(password, encoded):
 
 def authenticate(username, password):
     with get_conn() as conn:
+        conn.execute('BEGIN IMMEDIATE')
         attempt = conn.execute('SELECT * FROM login_attempts WHERE username=?', (username,)).fetchone()
         if attempt and attempt['failures'] >= 5 and time.time() - attempt['last_attempt'] < 300:
             return None
