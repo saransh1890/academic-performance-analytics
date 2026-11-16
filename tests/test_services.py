@@ -179,3 +179,15 @@ def test_admin_password_reset_unlocks_account(setup_db):
         assert authenticate('faculty', 'wrong') is None
     save_user(setup_db['admin'], 'faculty', 'replacement-password', 'Faculty')
     assert authenticate('faculty', 'replacement-password') is not None
+
+
+def test_backup_rejects_hard_link_to_source(setup_db, tmp_path):
+    import os
+
+    alias = tmp_path / 'alias.db'
+    try:
+        os.link(database.DB_PATH, alias)
+    except OSError as exc:
+        pytest.skip(f'Hard links unavailable: {exc}')
+    with pytest.raises(ValueError, match='must differ'):
+        backup_database(alias)
