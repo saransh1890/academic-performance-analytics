@@ -18,7 +18,15 @@ def test_authentication_and_password_storage(setup_db):
     with get_conn() as conn:
         assert conn.execute('SELECT password_hash FROM users LIMIT 1').fetchone()[0].startswith('pbkdf2_sha256$')
     assert verify_password('a-long-password', password_hash('a-long-password'))
+    with pytest.raises(ValueError, match='at least 10'):
+        password_hash(None)
     assert not verify_password('incorrect', password_hash('a-long-password'))
+    wrong_scheme = password_hash('a-long-password').replace('pbkdf2_sha256', 'unknown', 1)
+    assert not verify_password('a-long-password', wrong_scheme)
+    oversized = password_hash('a-long-password').replace('$260000$', '$999999999999$', 1)
+    assert not verify_password('a-long-password', oversized)
+    assert not verify_password('a-long-password', None)
+    assert not verify_password(None, password_hash('a-long-password'))
 
 
 def test_student_privacy_and_write_denial(setup_db):
@@ -164,3 +172,22 @@ def test_historical_report_uses_subject_and_intervention_filters_together(setup_
     report = pd.read_csv(BytesIO(export_report(faculty, 1, 'P2', risk_only=True)))
     assert report['Student ID'].tolist() == [3, 4]
     assert report['Period'].tolist() == ['P2', 'P2']
+
+
+def test_admin_password_reset_unlocks_account(setup_db):
+    for _ in range(5):
+        assert authenticate('faculty', 'wrong') is None
+    save_user(setup_db['admin'], 'faculty', 'replacement-password', 'Faculty')
+    assert authenticate('faculty', 'replacement-password') is not None
+
+
+def test_backup_rejects_hard_link_to_source(setup_db, tmp_path):
+    import os
+
+    alias = tmp_path / 'alias.db'
+    try:
+        os.link(database.DB_PATH, alias)
+    except OSError as exc:
+        pytest.skip(f'Hard links unavailable: {exc}')
+    with pytest.raises(ValueError, match='must differ'):
+        backup_database(alias)

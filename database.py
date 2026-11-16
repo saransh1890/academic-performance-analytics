@@ -51,6 +51,8 @@ def backup_database(destination):
     target = Path(destination).resolve()
     if target == Path(DB_PATH).resolve():
         raise ValueError('Backup destination must differ from database')
+    if target.exists() and target.samefile(DB_PATH):
+        raise ValueError('Backup destination must differ from database')
     target.parent.mkdir(parents=True, exist_ok=True)
     with get_conn() as source:
         backup = sqlite3.connect(target)
