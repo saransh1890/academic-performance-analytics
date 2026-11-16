@@ -126,6 +126,7 @@ def save_user(principal, username, password, role, student_id=None, active=True)
         conn.execute('''INSERT INTO users VALUES(?,?,?,?,?) ON CONFLICT(username) DO UPDATE SET
           password_hash=excluded.password_hash,role=excluded.role,student_id=excluded.student_id,active=excluded.active''',
           (username, encoded, role, student_id if role == 'Student' else None, int(active)))
+        conn.execute('DELETE FROM login_attempts WHERE username=?', (username,))
         audit(conn, user, 'user.save', username)
 
 

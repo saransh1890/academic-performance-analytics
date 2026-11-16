@@ -28,6 +28,7 @@ CASES = {
  'test_stable_trend': ('F011','Stable score','70 to 75 is Stable'),
  'test_low_attendance_triggers_intervention': ('F013','Low attendance','60 percent attendance triggers a low-attendance reason'),
  'test_invalid_score_inputs_rejected': ('SR006','Out-of-range score','Score above 100 is rejected'),
+ 'test_admin_password_reset_unlocks_account': ('F001,SR001','Reset locked account','Administrator reset clears the lockout for the reset account'),
  'test_authentication_and_password_storage': ('F001,SR004','Login and password storage','Invalid login fails; salted hash verifies correct passwords only'),
  'test_student_privacy_and_write_denial': ('F015,SR001/002/003','Student privacy and role denial','Student reads only own records; unauthorized writes/reports/admin access are denied'),
  'test_attendance_upsert_and_audit': ('F004/005/017,SR005','Attendance update and audit','4 of 4 classes yields 100 percent; one record remains and both operations are audited'),

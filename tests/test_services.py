@@ -172,3 +172,10 @@ def test_historical_report_uses_subject_and_intervention_filters_together(setup_
     report = pd.read_csv(BytesIO(export_report(faculty, 1, 'P2', risk_only=True)))
     assert report['Student ID'].tolist() == [3, 4]
     assert report['Period'].tolist() == ['P2', 'P2']
+
+
+def test_admin_password_reset_unlocks_account(setup_db):
+    for _ in range(5):
+        assert authenticate('faculty', 'wrong') is None
+    save_user(setup_db['admin'], 'faculty', 'replacement-password', 'Faculty')
+    assert authenticate('faculty', 'replacement-password') is not None
