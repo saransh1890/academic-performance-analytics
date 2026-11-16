@@ -26,7 +26,9 @@ def password_hash(password):
 
 def verify_password(password, encoded):
     try:
-        _, iterations, salt, digest = encoded.split('$')
+        algorithm, iterations, salt, digest = encoded.split('$')
+        if algorithm != 'pbkdf2_sha256':
+            return False
         actual = hashlib.pbkdf2_hmac('sha256', password.encode(), bytes.fromhex(salt), int(iterations)).hex()
         return hmac.compare_digest(actual, digest)
     except (ValueError, TypeError):

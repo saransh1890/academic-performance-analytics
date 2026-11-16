@@ -19,6 +19,8 @@ def test_authentication_and_password_storage(setup_db):
         assert conn.execute('SELECT password_hash FROM users LIMIT 1').fetchone()[0].startswith('pbkdf2_sha256$')
     assert verify_password('a-long-password', password_hash('a-long-password'))
     assert not verify_password('incorrect', password_hash('a-long-password'))
+    wrong_scheme = password_hash('a-long-password').replace('pbkdf2_sha256', 'unknown', 1)
+    assert not verify_password('a-long-password', wrong_scheme)
 
 
 def test_student_privacy_and_write_denial(setup_db):
