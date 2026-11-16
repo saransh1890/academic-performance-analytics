@@ -25,6 +25,8 @@ def password_hash(password):
 
 
 def verify_password(password, encoded):
+    if not isinstance(password, str) or not isinstance(encoded, str):
+        return False
     try:
         algorithm, iterations, salt, digest = encoded.split('$')
         if algorithm != 'pbkdf2_sha256':
