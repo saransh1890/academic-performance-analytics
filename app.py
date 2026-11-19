@@ -222,7 +222,9 @@ elif page == 'Administration':
     st.subheader('Administration')
     tabs = st.tabs(['Students','Subjects','Accounts','Audit and backup'])
     with tabs[0]:
-        st.dataframe(students, hide_index=True)
+        st.dataframe(students, hide_index=True, column_config={
+            'student_id': 'Student ID', 'name': 'Student name', 'program': 'Program', 'semester': 'Semester',
+        })
         with st.form('student'):
             sid = st.number_input('Student ID (existing ID updates profile)', min_value=1, step=1)
             name = st.text_input('Student name')
@@ -231,7 +233,9 @@ elif page == 'Administration':
             if st.form_submit_button('Save student'):
                 handle(save_student, sid, name, program, semester)
     with tabs[1]:
-        st.dataframe(subjects, hide_index=True)
+        st.dataframe(subjects, hide_index=True, column_config={
+            'subject_id': 'Subject ID', 'code': 'Subject code', 'name': 'Subject name',
+        })
         with st.form('subject'):
             sid = st.number_input('Subject ID (existing ID updates subject)', min_value=1, step=1)
             code = st.text_input('Subject code')
@@ -254,7 +258,9 @@ elif page == 'Administration':
             if st.form_submit_button('Save account / reset password'):
                 handle(save_user, username, password, role, student, active)
     with tabs[3]:
-        st.dataframe(audit, hide_index=True, width='stretch')
+        st.dataframe(audit, hide_index=True, width='stretch', column_config={
+            'actor': 'Changed by', 'action': 'Action', 'detail': 'Change details', 'created_at': 'Time (UTC)',
+        })
         st.caption('Latest 200 changes. Backups contain account hashes and academic records; keep them private.')
         if st.button('Create local database backup'):
             authorize(p, ('Admin',))
