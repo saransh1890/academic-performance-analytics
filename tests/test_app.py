@@ -202,3 +202,17 @@ def test_empty_subject_can_export_csv_headers(app):
     at.selectbox(key='Reportssubject').set_value(2).run()
     assert not at.exception
     assert [button.label for button in at.get('download_button')] == ['Download empty report (CSV)']
+
+
+def test_admin_backup_failure_shows_actionable_message(app, monkeypatch):
+    import sqlite3
+
+    def fail_backup(_destination):
+        raise sqlite3.OperationalError('unable to open database file')
+
+    monkeypatch.setattr(database, 'backup_database', fail_backup)
+    at = login(app, 'admin')
+    at.sidebar.radio[0].set_value('Administration').run()
+    next(b for b in at.button if b.label == 'Create local database backup').click().run()
+    assert not at.exception
+    assert any('backup folder is writable' in item.value for item in at.error)

@@ -42,6 +42,7 @@ CASES = {
  'test_normal_load_performance': ('NF001','Normal synthetic query/summary load','20 query-and-summary cycles complete in less than three seconds'),
  'test_login_and_student_dashboard': ('F001/009/015','Student dashboard and logout','Own metrics and history appear; peer data/class controls are absent; logout returns to sign-in'),
  'test_faculty_record_flow': ('F004/006/007/010/014','Faculty record-to-report workflow','Record saves successfully; report page opens and class metrics remain available'),
+ 'test_admin_backup_failure_shows_actionable_message': ('NF005','Backup UI failure','The Admin workspace displays a recovery message if the backup cannot be written'),
  'test_admin_screen': ('F002/003,SR002','Administrator workspace','Student, subject, account and audit/backup tabs render'),
  'test_faculty_intervention_filter_and_report_scope': ('F010/013/014','Faculty intervention filter','Filter returns two flagged students; clearing restores five; report scope is available'),
  'test_admin_has_no_intervention_filter': ('SR002','Admin filter visibility','Faculty-only checkbox is absent from Admin dashboard and reports'),

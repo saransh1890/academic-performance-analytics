@@ -49,3 +49,7 @@ Identifiers above use the AAS- prefix from the original SRS.
 ## Release acceptance
 
 Run all tests, visually exercise each role, create a database backup, verify GitHub Actions on the PR, and have the owner review before merge. Record the two demonstration videos using docs/DEMO.md. The code is a single-instance project implementation; institutional production deployment requires a separate operational review and policy decisions.
+
+## Current component ownership
+
+Saransh owns foundation/authentication/accounts (PR 13); Maneesh academic records/validation/audit (PR 14); Suhas analytics/trends/intervention/reporting (PR 15); Akash UI/forms/styling/integration/CI (PR 16). This corrects the earlier proposed role allocation. Part 3 report PR 17 remains Suhas's actual contribution. Revised template-aligned SRS/SAD/Test Plan now live in docs/; the original submitted baseline is preserved in Git history and local review backups.
