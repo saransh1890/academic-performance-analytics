@@ -245,7 +245,11 @@ elif page == 'Administration':
             username = st.text_input('Account username')
             password = st.text_input('New password (at least 10 characters)', type='password')
             role = st.selectbox('Account role', ['Student','Faculty','Admin'])
-            student = st.selectbox('Linked student (required for Student role)', [None] + students.student_id.tolist())
+            student_names = students.set_index('student_id')['name'].to_dict()
+            student = st.selectbox(
+                'Linked student (required for Student role)', [None] + students.student_id.tolist(),
+                format_func=lambda sid: 'Choose a student' if sid is None else f'{sid} · {student_names[sid]}',
+            )
             active = st.checkbox('Account active', value=True)
             if st.form_submit_button('Save account / reset password'):
                 handle(save_user, username, password, role, student, active)
