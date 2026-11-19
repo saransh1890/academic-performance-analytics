@@ -265,5 +265,9 @@ elif page == 'Administration':
         if st.button('Create local database backup'):
             authorize(p, ('Admin',))
             destination = Path(__file__).parent / 'backups' / (datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%S%fZ') + '.db')
-            backup_database(destination)
-            st.success(f'Backup saved: {destination.name}')
+            try:
+                backup_database(destination)
+            except (OSError, sqlite3.Error, ValueError):
+                st.error('Backup failed. Check that the local backup folder is writable and try again.')
+            else:
+                st.success(f'Backup saved: {destination.name}')
