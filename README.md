@@ -49,7 +49,7 @@ For the Part 3 test-case document, unit/system reports and statement/branch cove
 
 See [Part 3 reports](docs/reports/README.md). These include executed automated evidence and explicitly pending manual acceptance cases. The reporting files extend the four merged member contributions and can be regenerated with the command above.
 
-GitHub Actions runs the test suite on pushes and pull requests. See [delivery status](docs/DELIVERY.md), [requirements and design](docs/IMPLEMENTATION.md), [UI changes and requirements review](docs/UI_AND_REQUIREMENTS_REVIEW.md), [backlog](docs/BACKLOG.md), and [demo script](docs/DEMO.md). The revised [SRS](docs/SRS.docx), [SAD](docs/SAD.docx) and [Test Plan](docs/Test_Plan.docx) document the requirements, implemented design and automated evidence. The original submissions remain in Git history.
+GitHub Actions runs the test suite on pushes and pull requests. See [delivery status](docs/DELIVERY.md), [requirements and design](docs/IMPLEMENTATION.md), [UI changes and requirements review](docs/UI_AND_REQUIREMENTS_REVIEW.md), [backlog](docs/BACKLOG.md), and [demo script](docs/DEMO.md). Original SRS, SAD and Test Plan DOCX submissions are preserved; implementation details and deviations are in these companion documents.
 
 ## Data and recovery
 

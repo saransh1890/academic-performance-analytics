@@ -222,9 +222,7 @@ elif page == 'Administration':
     st.subheader('Administration')
     tabs = st.tabs(['Students','Subjects','Accounts','Audit and backup'])
     with tabs[0]:
-        st.dataframe(students, hide_index=True, column_config={
-            'student_id': 'Student ID', 'name': 'Student name', 'program': 'Program', 'semester': 'Semester',
-        })
+        st.dataframe(students, hide_index=True)
         with st.form('student'):
             sid = st.number_input('Student ID (existing ID updates profile)', min_value=1, step=1)
             name = st.text_input('Student name')
@@ -233,9 +231,7 @@ elif page == 'Administration':
             if st.form_submit_button('Save student'):
                 handle(save_student, sid, name, program, semester)
     with tabs[1]:
-        st.dataframe(subjects, hide_index=True, column_config={
-            'subject_id': 'Subject ID', 'code': 'Subject code', 'name': 'Subject name',
-        })
+        st.dataframe(subjects, hide_index=True)
         with st.form('subject'):
             sid = st.number_input('Subject ID (existing ID updates subject)', min_value=1, step=1)
             code = st.text_input('Subject code')
@@ -249,25 +245,15 @@ elif page == 'Administration':
             username = st.text_input('Account username')
             password = st.text_input('New password (at least 10 characters)', type='password')
             role = st.selectbox('Account role', ['Student','Faculty','Admin'])
-            student_names = students.set_index('student_id')['name'].to_dict()
-            student = st.selectbox(
-                'Linked student (required for Student role)', [None] + students.student_id.tolist(),
-                format_func=lambda sid: 'Choose a student' if sid is None else f'{sid} · {student_names[sid]}',
-            )
+            student = st.selectbox('Linked student (required for Student role)', [None] + students.student_id.tolist())
             active = st.checkbox('Account active', value=True)
             if st.form_submit_button('Save account / reset password'):
                 handle(save_user, username, password, role, student, active)
     with tabs[3]:
-        st.dataframe(audit, hide_index=True, width='stretch', column_config={
-            'actor': 'Changed by', 'action': 'Action', 'detail': 'Change details', 'created_at': 'Time (UTC)',
-        })
+        st.dataframe(audit, hide_index=True, width='stretch')
         st.caption('Latest 200 changes. Backups contain account hashes and academic records; keep them private.')
         if st.button('Create local database backup'):
             authorize(p, ('Admin',))
             destination = Path(__file__).parent / 'backups' / (datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%S%fZ') + '.db')
-            try:
-                backup_database(destination)
-            except (OSError, sqlite3.Error, ValueError):
-                st.error('Backup failed. Check that the local backup folder is writable and try again.')
-            else:
-                st.success(f'Backup saved: {destination.name}')
+            backup_database(destination)
+            st.success(f'Backup saved: {destination.name}')
