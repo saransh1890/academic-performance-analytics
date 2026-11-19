@@ -51,3 +51,7 @@ All 17 functional requirements have implementation paths. The original test-plan
 - The linked GitHub Project is blocked by missing Projects permission. Backlog issues exist, but actual team assignments, member-authored PRs, owner review, two real sprint recordings and final development freeze remain course-delivery tasks. These cannot be replaced by application code or scripts.
 
 See `IMPLEMENTATION.md` for full security/non-functional traceability, `VALIDATION.md` for test evidence, and `DELIVERY.md` for remaining submission work. Original DOCX files are preserved as submitted baselines.
+
+## Verified responsibility allocation
+
+Suhas owns the analytics/reporting service contribution in PR 15; Akash owns the UI/integration contribution in PR 16. Documentation and role-specific UI descriptions in this review refer to application behavior, not exclusive code authorship. The revised SRS/SAD/Test Plan now reflect this ownership and the supplied template/checklist structure; original baselines remain in Git history.
